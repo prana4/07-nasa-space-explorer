@@ -194,6 +194,10 @@ button.addEventListener('click', async () => {
   const start = startInput.value || startInput.min;
   const end = endInput.value || endInput.max;
 
+   console.log('Start date:', start);  // ADD THIS
+  console.log('End date:', end);      // ADD THIS
+  
+
   gallery.innerHTML = loadingMarkup;
   button.disabled = true;
   button.textContent = 'Loading…';

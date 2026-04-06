@@ -87,9 +87,13 @@ input[type="date"] {
   background: rgba(255,255,255,0.08);
   color: #f4f7ff;
   appearance: auto;
-  -webkit-appearance: textfield;
+  -webkit-appearance: auto;
+  cursor: pointer;
 }
 
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+}
 button {
   background-color: #ce1126;
   color: #ffffff;
