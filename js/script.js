@@ -61,10 +61,17 @@ function getDatesInRange(start, end) {
   return dates;
 }
 
+function fetchWithTimeout(url, options = {}, timeout = 15000) {
+  return Promise.race([
+    fetch(url, options),
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Request timed out')), timeout))
+  ]);
+}
+
 async function fetchAPODRange(start, end) {
   const url = `https://api.nasa.gov/planetary/apod?api_key=${API_KEY}&start_date=${start}&end_date=${end}`;
   try {
-    const response = await fetch(url);
+    const response = await fetchWithTimeout(url);
     if (response.ok) {
       const data = await response.json();
       return Array.isArray(data) ? data : [data];
@@ -191,18 +198,23 @@ button.addEventListener('click', async () => {
   button.disabled = true;
   button.textContent = 'Loading…';
 
-  const results = await fetchAPODRange(start, end);
-  gallery.innerHTML = '';
+  try {
+    const results = await fetchAPODRange(start, end);
+    gallery.innerHTML = '';
 
-  if (!results || results.length === 0) {
-    gallery.innerHTML = '<div class="placeholder"><div class="placeholder-icon">⚠️</div><p>No space photos were found for that date range. Try another range.</p></div>';
-  } else {
-    results.forEach(data => {
-      const item = createGalleryItem(data);
-      gallery.appendChild(item);
-    });
+    if (!results || results.length === 0) {
+      gallery.innerHTML = '<div class="placeholder"><div class="placeholder-icon">⚠️</div><p>No space photos were found for that date range. Try another range.</p></div>';
+    } else {
+      results.forEach(data => {
+        const item = createGalleryItem(data);
+        gallery.appendChild(item);
+      });
+    }
+  } catch (error) {
+    console.error('Unexpected error while loading images:', error);
+    gallery.innerHTML = '<div class="placeholder"><div class="placeholder-icon">⚠️</div><p>There was a problem loading the NASA photos. Please try again.</p></div>';
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Get Space Images';
   }
-
-  button.disabled = false;
-  button.textContent = 'Get Space Images';
 });
