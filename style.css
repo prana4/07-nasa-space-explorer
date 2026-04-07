@@ -82,6 +82,10 @@ button {
   font-size: 1rem;
   line-height: 1.4;
 }
+input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(1);
+}
 
 input[type="date"] {
   background: rgba(255,255,255,0.08);
