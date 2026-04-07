@@ -136,11 +136,19 @@ function createGalleryItem(data) {
 }
 
 function formatVideoUrl(url) {
-  const youtubeMatch = url.match(/(?:v=|\/youtu\.be\/|embed\/)([A-Za-z0-9_-]+)/);
+  // Handle YouTube URLs
+  const youtubeMatch = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([A-Za-z0-9_-]+)/);
   if (youtubeMatch && youtubeMatch[1]) {
-    return `https://www.youtube.com/embed/${youtubeMatch[1]}?rel=0`;
+    return `https://www.youtube.com/embed/${youtubeMatch[1]}?rel=0&autoplay=1`;
   }
-
+  
+  // Handle Vimeo URLs
+  const vimeoMatch = url.match(/vimeo\.com\/(\d+)/);
+  if (vimeoMatch && vimeoMatch[1]) {
+    return `https://player.vimeo.com/video/${vimeoMatch[1]}`;
+  }
+  
+  // For other video URLs, return as-is (may not embed properly)
   return url;
 }
 
@@ -150,27 +158,52 @@ function openModal(data) {
   modalDate.textContent = data.date;
   modalDescription.textContent = data.explanation;
   modalLink.href = data.url;
-  modalLink.textContent = data.media_type === 'video' ? 'Watch on NASA' : 'View original NASA entry';
 
   if (data.media_type === 'image') {
     const img = document.createElement('img');
     img.src = data.url;
     img.alt = data.title;
     modalMedia.appendChild(img);
+    modalLink.textContent = 'View original NASA entry';
   } else if (data.media_type === 'video') {
+    // Try to embed the video
+    const embedUrl = formatVideoUrl(data.url);
+    
+    // Create a container for the video
+    const videoContainer = document.createElement('div');
+    videoContainer.className = 'video-embed-container';
+    
     const iframe = document.createElement('iframe');
-    iframe.src = formatVideoUrl(data.url);
+    iframe.src = embedUrl;
     iframe.title = data.title;
-    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture';
+    iframe.width = '100%';
+    iframe.height = '450';
+    iframe.frameBorder = '0';
+    iframe.allow = 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
     iframe.allowFullscreen = true;
-    modalMedia.appendChild(iframe);
+    
+    // Add error handling - if iframe fails to load, show a message
+    iframe.onerror = function() {
+      videoContainer.innerHTML = `
+        <div class="video-fallback">
+          <div class="video-icon">▶</div>
+          <p>This video cannot be embedded.</p>
+          <a href="${data.url}" target="_blank" rel="noopener" class="video-link-button">
+            Watch on Nasa →
+          </a>
+        </div>
+      `;
+    };
+    
+    videoContainer.appendChild(iframe);
+    modalMedia.appendChild(videoContainer);
+    modalLink.textContent = 'Watch on Nasa';
   }
 
   modal.classList.remove('hidden');
   modal.setAttribute('aria-hidden', 'false');
   document.body.classList.add('modal-open');
 }
-
 function closeModal() {
   modal.classList.add('hidden');
   modal.setAttribute('aria-hidden', 'true');

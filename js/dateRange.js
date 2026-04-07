@@ -16,7 +16,7 @@ function setupDateInputs(startInput, endInput) {
 
   // Default: Show the most recent 9 days of space images
   const lastWeek = new Date();
-  lastWeek.setDate(lastWeek.getDate() - 8); // minus 8 because it includes today
+  lastWeek.setDate(lastWeek.getDate() - 2); // 3 days instead of 9
   startInput.value = lastWeek.toISOString().split('T')[0];
   endInput.value = today;
 
@@ -24,7 +24,7 @@ function setupDateInputs(startInput, endInput) {
   startInput.addEventListener('change', () => {
     const startDate = new Date(startInput.value);
     const endDate = new Date(startDate);
-    endDate.setDate(startDate.getDate() + 8);
+    endDate.setDate(startDate.getDate() + 2);
     endInput.value = endDate > new Date(today) ? today : endDate.toISOString().split('T')[0];
   });
 }
